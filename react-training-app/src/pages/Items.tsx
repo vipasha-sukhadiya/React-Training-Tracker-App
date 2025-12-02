@@ -24,7 +24,7 @@ function Items() {
     ]);
   };
 
-  if(loading) {
+  if (loading) {
     return <p className="text-gray-500">Loading items...</p>;
   }
 
