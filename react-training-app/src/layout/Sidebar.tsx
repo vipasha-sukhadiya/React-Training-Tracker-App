@@ -1,22 +1,27 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from 'react-router-dom';
+import { menuItems } from '../config/menu';
+import useAuthStore from '../stores/auth.store';
 
-function Sidebar() {
-  const navigate = useNavigate();
-
-  const handleClick = (path: string) => () => {
-    navigate(path);
-  };
+export default function Sidebar() {
+  const user = useAuthStore((s) => s.user);
 
   return (
-    <div className="w-60 h-screen bg-gray-900 text-white p-4">
-      <h2 className="text-xl font-bold mb-4">Sidebar</h2>
-      <ul className="space-y-3">
-        <li className="hover:bg-gray-700 p-2 rounded cursor-pointer" onClick={handleClick("/")}>Home</li>
-        <li className="hover:bg-gray-700 p-2 rounded cursor-pointer" onClick={handleClick("/items")}>Items</li>
-        <li className="hover:bg-gray-700 p-2 rounded cursor-pointer" onClick={handleClick("/about")}>About</li>
+    <div className="w-60 p-4 bg-gray-900 text-white min-h-screen">
+      <h2 className="mb-4">My App</h2>
+      <ul>
+        {menuItems
+          .filter((m) => {
+            if (!m.allowedRoles) return true;
+            return user && m.allowedRoles.includes(user.role as any);
+          })
+          .map((m) => (
+            <li key={m.id} className="mb-2">
+              <Link to={m.path} className="hover:underline">
+                {m.label}
+              </Link>
+            </li>
+          ))}
       </ul>
     </div>
   );
 }
-
-export default Sidebar;

@@ -4,6 +4,7 @@ import MainLayout from "../layout/MainLayout";
 import Items from "../pages/Items";
 import About from "../pages/About";
 import Home from "../pages/Home";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 function AppRouter() {
   return (
@@ -17,7 +18,7 @@ function AppRouter() {
           path="/"
           element={
             <MainLayout>
-              <Home />
+              <ProtectedRoute><Home /></ProtectedRoute>
             </MainLayout>
           }
         />
@@ -25,7 +26,7 @@ function AppRouter() {
           path="/items"
           element={
             <MainLayout>
-              <Items />
+              <ProtectedRoute requiredRoles={['admin','manager']}><Items /></ProtectedRoute>
             </MainLayout>
           }
         />
@@ -33,7 +34,7 @@ function AppRouter() {
           path="/about"
           element={
             <MainLayout>
-              <About />
+              <ProtectedRoute><About /></ProtectedRoute>
             </MainLayout>
           }
         />
