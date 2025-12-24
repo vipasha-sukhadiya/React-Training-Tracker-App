@@ -2,10 +2,12 @@ import { itemsApi, Item } from "../services/items.api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MainLayout from "../layout/MainLayout";
 import Card from "../components/ui/Card";
+import { useAuthStore } from "../stores/auth.store";
 
 function Items() {
   // const [items, setItems] = useState<Item[] | null>(null);
   // const [loading, setLoading] = useState<boolean>(true);
+  const user = useAuthStore((s) => s.user);
 
   const queryClient = useQueryClient();
 
@@ -56,17 +58,20 @@ function Items() {
   // if (items?.length === 0) {
   //   return <p className="text-gray-500">No items available</p>;
   // }
-
+  
   return (
     <>
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">Items</h1>
-        <button
-          onClick={handleCreateItem}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Create Item
-        </button>
+        {
+        user && (user.role === 'admin' || user.role === 'manager') && (
+          <button
+            onClick={handleCreateItem}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Create Item
+          </button>
+        )}
       </div>
       <Card title="Item List">
         {isLoading || isFetching ? (

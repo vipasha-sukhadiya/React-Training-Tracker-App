@@ -1,74 +1,44 @@
-import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import api from '../services/apiClient';
+import useAuthStore from '../stores/auth.store';
+import { useNavigate } from 'react-router-dom';
+import { AuthUser } from '../types/auth';
 
-const loginSchema = z.object({
-  email: z
-    .string()
-    .min(12, "Email must be at least 12 characters")
-    .email("Invalid email address"),
-  password: z.string().min(4, "Password must be at least 4 characters"),
-});
+type LoginPayload = { email: string; password: string };
+type LoginResponse = { accessToken: string; user: AuthUser };
 
-type LoginFormData = z.infer<typeof loginSchema>;
-
-function Login() {
+export default function Login() {
+  const { register, handleSubmit } = useForm<LoginPayload>();
   const navigate = useNavigate();
+  const loginToStore = useAuthStore((s) => s.login);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  const mutation = useMutation({
+    mutationFn: async (payload: LoginPayload) => {
+      const res = await api.post<LoginResponse>('/auth/login', payload, { withCredentials: true });
+      return res.data;
+    },
+    onSuccess(data) {
+      // store tokens/user
+      loginToStore(data.accessToken, data.user);
+      navigate('/');
+    },
+    onError(err) {
+      console.error('Login failed', err);
+      // show notification
+    },
   });
 
-  const onSubmit = (data: LoginFormData) => {
-    console.log(data);
-    navigate("/");
-  };
+  const onSubmit = (data: LoginPayload) => mutation.mutate(data);
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-100">
-      <form
-        className="bg-white shadow p-8 rounded w-96"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <h1 className="text-2xl font-bold mb-6">Login</h1>
-
-        {/* Email Field */}
-        <label className="block mb-2">Email</label>
-        <input
-          className="w-full p-2 border rounded"
-          type="text"
-          id="email"
-          {...register("email")}
-        />
-        {errors.email && (
-          <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-        )}
-
-        {/* Password Field */}
-        <label className="block mt-2 mb-2">Password</label>
-        <input
-          className="w-full p-2 border rounded"
-          type="password"
-          id="password"
-          {...register("password")}
-        />
-        {errors.password && (
-          <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
-        )}
-        <button
-          className="w-full bg-indigo-500 text-white p-2 mt-6 rounded hover:bg-indigo-600"
-          type="submit"
-        >
-          Login
-        </button>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit(onSubmit)} className="...">
+      <input {...register('email')} placeholder="email" />
+      <input {...register('password')} type="password" />
+      <button type="submit">
+        Login
+      </button>
+    </form>
   );
 }
-
-export default Login;
